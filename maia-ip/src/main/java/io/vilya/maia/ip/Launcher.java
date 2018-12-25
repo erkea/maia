@@ -9,15 +9,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
 
 /**
  * 
@@ -29,7 +29,7 @@ public class Launcher extends AbstractVerticle {
 	private static final Logger log = LoggerFactory.getLogger(Logger.class);
 	
 	private static final String ROOT_PATH = "/*";
-	
+		
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {
 		HttpServer server = vertx.createHttpServer();
@@ -64,6 +64,11 @@ public class Launcher extends AbstractVerticle {
 					|| primaryAccept.isCompatibleWith(MediaType.TEXT_XML)) {
 				contentType = MediaType.APPLICATION_XML.getFull();
 				mapper = new XmlMapper();
+			} else {
+				contentType = MediaType.TEXT_HTML.getFull();
+				rh.put("data", userInfo);
+				rh.reroute("/ip/index.html");
+				return;
 			}
 			
 			if (contentType != null) {
@@ -81,6 +86,8 @@ public class Launcher extends AbstractVerticle {
 			}
 			
 		});
+		
+		router.getWithRegex(".+\\.html").handler(TemplateHandler.create(ThymeleafTemplateEngine.create(vertx)));
 		
 		router.route(ROOT_PATH).failureHandler(fh -> {
 			fh.response().setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getCode()).end("Sorry!");

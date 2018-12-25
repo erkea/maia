@@ -11,7 +11,9 @@ public enum MediaType {
 	
 	TEXT_XML("text/xml;charset=utf-8", "text", "xml"),
 	
-	APPLICATION_JSON("application/json;charset=utf-8", "application", "json"),;
+	APPLICATION_JSON("application/json;charset=utf-8", "application", "json"),
+	
+	TEXT_HTML("text/html;charset=utf-8", "text", "html");
 	
 	private String full;
 	
