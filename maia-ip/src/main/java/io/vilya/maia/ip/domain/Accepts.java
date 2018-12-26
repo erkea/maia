@@ -1,4 +1,4 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.ip.domain;
 
 import java.util.Arrays;
 import java.util.Collections;
