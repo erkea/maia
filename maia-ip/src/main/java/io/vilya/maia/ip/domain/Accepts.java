@@ -12,7 +12,7 @@ import io.netty.util.internal.StringUtil;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public class Accepts implements Iterable<Accept> {

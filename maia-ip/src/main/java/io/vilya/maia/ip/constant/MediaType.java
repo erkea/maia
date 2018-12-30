@@ -2,7 +2,7 @@ package io.vilya.maia.ip.constant;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public enum MediaType {
