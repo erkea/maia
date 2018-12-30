@@ -31,7 +31,6 @@ public class Launcher {
 	private static final Logger log = LoggerFactory.getLogger(Logger.class);
 
 	private static final String ROOT_PATH = "/*";
-
 	public static void main(String[] args) {
 		List<Class<?>> classes = ControllerScanner.scanQuietly(Launcher.class.getPackageName());
 
