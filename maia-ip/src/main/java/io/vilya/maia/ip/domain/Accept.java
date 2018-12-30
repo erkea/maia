@@ -8,7 +8,7 @@ import io.vilya.maia.ip.constant.MediaType;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public class Accept implements Comparable<Accept> {
