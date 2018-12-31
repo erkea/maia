@@ -1,12 +1,14 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.ip.constant;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public enum HttpStatusCode {
 
+	NO_CONTENT(204, "No Content"),
+	
 	BAD_REQUEST(400, "Bad Request"),
 	
 	INTERNAL_SERVER_ERROR(500, "Internal Server Error"),

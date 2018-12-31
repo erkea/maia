@@ -1,4 +1,4 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.ip.domain;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,7 +12,7 @@ import io.netty.util.internal.StringUtil;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public class Accepts implements Iterable<Accept> {

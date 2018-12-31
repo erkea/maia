@@ -1,8 +1,8 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.ip.vo;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public class UserInfoVO {

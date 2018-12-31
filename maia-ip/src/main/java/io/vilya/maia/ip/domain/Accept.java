@@ -1,13 +1,14 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.ip.domain;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.netty.util.internal.StringUtil;
+import io.vilya.maia.ip.constant.MediaType;
 
 /**
  * 
- * @author vilya
+ * @author erkea <erkea@vilya.io>
  *
  */
 public class Accept implements Comparable<Accept> {
