@@ -14,6 +14,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.StaticHandler;
 import io.vilya.maia.ip.annotation.RequestMapping;
 import io.vilya.maia.ip.annotation.RequestMappingMetadata;
 import io.vilya.maia.ip.constant.HttpStatusCode;
@@ -51,6 +52,8 @@ public class Launcher {
 					rh.response().putHeader("X-Vilya-Version", "1.0");
 					rh.next();
 				});
+				
+				router.route(ROOT_PATH).order(Integer.MAX_VALUE - 10).handler(StaticHandler.create("/static"));
 
 				router.route(ROOT_PATH).last().failureHandler(rh -> {
 					log.error("INTERNAL_SERVER_ERROR", rh.failure());
@@ -78,7 +81,7 @@ public class Launcher {
 
 					route.handler(new RequestHandler(handlerMethod));
 
-					log.debug("ROUTE INFO: {}", route.toString());
+					log.debug("ROUTE INFO: {}", route);
 				});
 
 				server.requestHandler(router).listen(8080, listenHandler -> {
