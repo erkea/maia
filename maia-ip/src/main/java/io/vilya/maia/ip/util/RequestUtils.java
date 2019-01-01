@@ -19,10 +19,10 @@ public class RequestUtils {
 	public static String getRealIp(HttpServerRequest request) {
 		String ip = request.getHeader(HttpHeaders.X_FORWARDED_FOR);
 		if (Strings.isNullOrEmpty(ip)) {
-			return ip;
+			ip = request.remoteAddress().host();
 		}
 		
-		return request.remoteAddress().host();
+		return ip;
 	}
 	
 }

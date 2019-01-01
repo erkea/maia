@@ -5,6 +5,8 @@ package io.vilya.maia.ip.handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vilya.maia.ip.constant.HttpStatusCode;
+import io.vilya.maia.ip.exception.MaiaRuntimeException;
 import io.vilya.maia.ip.method.HandlerMethod;
 
 /**
@@ -43,18 +46,18 @@ public class RequestHandler implements Handler<RoutingContext> {
 		HttpServerRequest request = context.request();
 		HttpServerResponse response = context.response();
 		
-		Object bean = handlerMethod.getBean();
-		Method method = handlerMethod.getMethod();
-		
-		Object returnValue = null;
-		try {
-			returnValue = method.invoke(bean, request, response);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			log.error("failed to invoke", e);
-		}
-		
 		if (response.ended()) {
 			return;
+		}
+		
+		Object bean = handlerMethod.getBean();
+		Method method = handlerMethod.getMethod();
+				
+		Object returnValue = null;
+		try {
+			returnValue = method.invoke(bean, fillMethodArgs(method, request, response));
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			log.error("failed to invoke", e);
 		}
 		
 		if (returnValue == null) {
@@ -64,9 +67,24 @@ public class RequestHandler implements Handler<RoutingContext> {
 			try {
 				response.end(Buffer.buffer(objectMapper.writeValueAsBytes(returnValue)));
 			} catch (JsonProcessingException e) {
-				throw new RuntimeException(e);
+				throw new MaiaRuntimeException(e);
 			}
 		}
+	}
+	
+	private static Object[] fillMethodArgs(Method method, HttpServerRequest request, HttpServerResponse response) {
+		List<Object> args = new ArrayList<>(method.getParameterCount());
+		for (Class<?> type : method.getParameterTypes()) {			
+			if (HttpServerRequest.class.isAssignableFrom(type)) {
+				args.add(request);
+			} else if (HttpServerResponse.class.isAssignableFrom(type)) {
+				args.add(response);
+			} else {
+				throw new MaiaRuntimeException("Unsupported parameter type: " + type);				
+			}
+		}
+		
+		return args.toArray();
 	}
 
 }
