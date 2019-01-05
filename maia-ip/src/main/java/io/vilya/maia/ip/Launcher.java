@@ -1,26 +1,17 @@
 package io.vilya.maia.ip;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.StaticHandler;
-import io.vilya.maia.ip.annotation.RequestMapping;
-import io.vilya.maia.ip.annotation.RequestMappingMetadata;
-import io.vilya.maia.ip.constant.HttpStatusCode;
-import io.vilya.maia.ip.handler.RequestHandler;
-import io.vilya.maia.ip.method.HandlerMethod;
-import io.vilya.maia.ip.util.ControllerScanner;
+import io.vertx.core.json.JsonObject;
+import io.vilya.maia.ip.factory.ConfigRetrieverFactory;
+import io.vilya.maia.ip.factory.RouterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -31,60 +22,27 @@ public class Launcher {
 
 	private static final Logger log = LoggerFactory.getLogger(Logger.class);
 
-	private static final String ROOT_PATH = "/*";
 	public static void main(String[] args) {
-		List<Class<?>> classes = ControllerScanner.scanQuietly(Launcher.class.getPackageName());
-
 		Vertx vertx = Vertx.vertx();
+		ConfigRetriever retriever = new ConfigRetrieverFactory().create(vertx);
+		retriever.getConfig(result -> {
+			if (result.failed()) {
+				log.error("load config failed", result.cause());
+				return;
+			}
+
+			JsonObject config = result.result();
+			deployVerticle(vertx, config);
+		});
+	}
+
+	private static void deployVerticle(Vertx vertx, JsonObject config) {
 		vertx.deployVerticle(new AbstractVerticle() {
 			@Override
 			public void start(Future<Void> startFuture) throws Exception {
 				HttpServer server = vertx.createHttpServer();
-				Router router = Router.router(vertx);
-
-				router.route(ROOT_PATH).handler(rh -> {
-					log.debug("REQUEST URI: {}", rh.request().uri());
-					log.debug("REQUEST HOST: {}", rh.request().host());
-					rh.next();
-				});
-				
-				router.route(ROOT_PATH).handler(rh -> {
-					rh.response().putHeader("X-Vilya-Version", "1.0");
-					rh.next();
-				});
-				
-				router.route(ROOT_PATH).order(Integer.MAX_VALUE - 10).handler(StaticHandler.create("/static"));
-
-				router.route(ROOT_PATH).last().failureHandler(rh -> {
-					log.error("INTERNAL_SERVER_ERROR", rh.failure());
-					rh.response().setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getCode());
-					rh.response().end();
-				});
-
-				classes.stream().flatMap(Launcher::collectMetadata).forEach(handlerMethod -> {
-					RequestMappingMetadata metadata = handlerMethod.getMetadata();
-
-					Route route = metadata.isRegexPath() ? router.routeWithRegex(metadata.getPath())
-							: router.route(metadata.getPath());
-
-					for (HttpMethod method : metadata.getMethods()) {
-						route.method(method);
-					}
-
-					for (String consume : metadata.getConsumes()) {
-						route.consumes(consume);
-					}
-
-					for (String produce : metadata.getProduces()) {
-						route.produces(produce);
-					}
-
-					route.handler(new RequestHandler(handlerMethod));
-
-					log.debug("ROUTE INFO: {}", route);
-				});
-
-				server.requestHandler(router).listen(8080, listenHandler -> {
+				int port = config.getInteger("server.port", 8080);
+				server.requestHandler(new RouterFactory().create(vertx)).listen(port, listenHandler -> {
 					if (listenHandler.succeeded()) {
 						startFuture.complete();
 					} else {
@@ -93,31 +51,6 @@ public class Launcher {
 				});
 			}
 		});
-
-	}
-
-	private static Stream<HandlerMethod> collectMetadata(Class<?> clazz) {
-		Object instance = null;
-		try {
-			instance = clazz.getDeclaredConstructor().newInstance();
-		} catch (Exception e) {
-			log.error("", e);
-		}
-
-		if (instance == null) {
-			return Stream.of();
-		}
-
-		final Object finalInstance = instance;
-		return Arrays.stream(clazz.getDeclaredMethods())
-				.filter(t -> t.isAnnotationPresent(RequestMapping.class))
-				.map(t -> {
-					HandlerMethod handlerMethod = new HandlerMethod();
-					handlerMethod.setBean(finalInstance);
-					handlerMethod.setMethod(t);
-					handlerMethod.setMetadata(RequestMappingMetadata.of(t.getAnnotation(RequestMapping.class)));
-					return handlerMethod;
-				});
 	}
 
 }
