@@ -11,6 +11,9 @@
 
 	<modules>
 		<module>maia-ip</module>
+		<module>maia-core</module>
+		<module>maia-cms</module>
+		<module>maia-launcher</module>
 	</modules>
 
 	<properties>
@@ -25,6 +28,21 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>io.vilya.maia</groupId>
+				<artifactId>maia-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.vilya.maia</groupId>
+				<artifactId>maia-ip</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.vilya.maia</groupId>
+				<artifactId>maia-cms</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>io.vertx</groupId>
 				<artifactId>vertx-dependencies</artifactId>

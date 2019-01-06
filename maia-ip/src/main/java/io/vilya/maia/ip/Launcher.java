@@ -1,17 +1,16 @@
 package io.vilya.maia.ip;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
-import io.vilya.maia.ip.factory.ConfigRetrieverFactory;
-import io.vilya.maia.ip.factory.RouterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.vilya.maia.core.factory.ConfigRetrieverFactory;
+import io.vilya.maia.core.factory.RouterFactory;
 
 /**
  * 
