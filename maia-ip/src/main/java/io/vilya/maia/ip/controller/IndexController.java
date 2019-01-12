@@ -6,9 +6,9 @@ package io.vilya.maia.ip.controller;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vilya.maia.ip.annotation.Controller;
-import io.vilya.maia.ip.annotation.RequestMapping;
-import io.vilya.maia.ip.util.RequestUtils;
+import io.vilya.maia.core.annotation.Controller;
+import io.vilya.maia.core.annotation.RequestMapping;
+import io.vilya.maia.core.util.RequestUtils;
 import io.vilya.maia.ip.vo.UserInfoVO;
 
 /**

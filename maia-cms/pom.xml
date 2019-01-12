@@ -7,16 +7,12 @@
 		<artifactId>maia-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>maia-ip</artifactId>
+	<artifactId>maia-cms</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>io.vilya.maia</groupId>
 			<artifactId>maia-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-config</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
