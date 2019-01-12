@@ -1,4 +1,4 @@
-package io.vilya.maia.ip;
+package io.vilya.maia.launcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

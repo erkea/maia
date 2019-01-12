@@ -36,7 +36,7 @@ public class ControllerScanner {
 		try {
 			return scan(ControllerScanner.class.getClassLoader(), basePackageName);			
 		} catch (IOException e) {
-			log.error("failed to scan: pachageName=" + basePackageName, e);
+			log.error("failed to scan: packageName=" + basePackageName, e);
 			return Collections.emptyList();
 		}
 	}
@@ -49,6 +49,8 @@ public class ControllerScanner {
 		return scanLazily(classLoader, basePackageName)
 				.collect(Collectors.toList());
 	}
+	
+
 	
 	public static Stream<? extends Class<?>> scanLazily(String basePackageName) throws IOException {
 		return scanLazily(ControllerScanner.class.getClassLoader(), basePackageName);
