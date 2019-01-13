@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(TYPE)
+@Component
 public @interface Controller {
 
 	
