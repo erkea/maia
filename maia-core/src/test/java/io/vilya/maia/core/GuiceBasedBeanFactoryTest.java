@@ -17,8 +17,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import io.vilya.maia.core.annotation.Component;
-import io.vilya.maia.core.context.BeanFactory;
-import io.vilya.maia.core.context.guice.GuiceBasedBeanFactory;
+import io.vilya.maia.core.context.ApplicationContext;
+import io.vilya.maia.core.context.guice.GuiceBasedApplicationContext;
 
 /**
  * @author erkea <erkea@vilya.io>
@@ -27,13 +27,13 @@ import io.vilya.maia.core.context.guice.GuiceBasedBeanFactory;
 @Component
 public class GuiceBasedBeanFactoryTest {
 
-	private static BeanFactory componentFactory;
+	private static ApplicationContext componentFactory;
 	
 	private static Injector injector;
 	
 	@BeforeAll
 	public static void init() {
-		componentFactory = new GuiceBasedBeanFactory("io.vilya.maia.core");
+		componentFactory = new GuiceBasedApplicationContext("io.vilya.maia.core");
 		componentFactory.refresh();
 		
 		injector = Guice.createInjector(new AbstractModule() {
@@ -71,8 +71,14 @@ public class GuiceBasedBeanFactoryTest {
 	
 	@Test
 	public void test5() {
-		componentFactory.getBeanOfType(Foo.class).forEach(System.out::println);
-		componentFactory.getBean(Bar.class).test();
+		componentFactory.getBeanOfType(Printer.class).forEach(System.out::println);
+		componentFactory.getBean(Printer.class).print();
+	}
+	
+	@Test
+	public void test7() {
+		componentFactory.getBeanOfType(String.class).forEach(System.out::println);
+		componentFactory.getBean(String.class);
 	}
 	
 	private interface Foo {}
@@ -90,7 +96,7 @@ public class GuiceBasedBeanFactoryTest {
 		
 	}
 	
-	@Singleton
+	@Component
 	private static class PrinterImpl implements Printer {
 
 		@Override
@@ -103,7 +109,6 @@ public class GuiceBasedBeanFactoryTest {
 	private static class Bar {
 		
 		@Inject
-		@Named("FooImpl1")
 		private Foo foo;
 		
 		public void test() {

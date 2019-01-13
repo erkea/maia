@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,7 +40,7 @@ public class BeanScanner {
 	
 	public BeanScanner(Class<? extends Annotation> annotation) {
 		this.annotation = annotation;
-		this.classFilter = createClassFilter(annotation);
+		this.classFilter = ClassFilter.isClass().and(ClassFilter.ofAnnotation(annotation));
 	}
 
 	public List<Class<?>> scan(String... basePackages) {
@@ -93,10 +92,6 @@ public class BeanScanner {
 			declaredClasses.add(t);
 			includeDeclaredClasses(t, declaredClasses);
 		});
-	}
-
-	private static ClassFilter createClassFilter(Class<? extends Annotation> annotation) {
-		return clazz -> clazz != null && clazz.isAnnotationPresent(annotation);
 	}
 
 }

@@ -9,35 +9,39 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vilya.maia.core.annotation.Component;
+import io.vilya.maia.core.annotation.Controller;
 import io.vilya.maia.core.annotation.RequestMapping;
 import io.vilya.maia.core.annotation.RequestMappingMetadata;
 import io.vilya.maia.core.constant.HttpStatusCode;
+import io.vilya.maia.core.context.ApplicationContext;
+import io.vilya.maia.core.context.ClassFilter;
 import io.vilya.maia.core.handler.RequestHandler;
 import io.vilya.maia.core.handler.RoutingHandler;
 import io.vilya.maia.core.method.HandlerMethod;
-import io.vilya.maia.core.util.ControllerScanner;
 
 /**
  *
  * @author erkea <erkea@vilya.io>
  *
  */
+@Component
 public class RouterFactory implements VertxComponentFactory<Router> {
 
     private static final Logger log = LoggerFactory.getLogger(RouterFactory.class);
-    
+        
     @Override
-    public Router create(Vertx vertx) {
-        Preconditions.checkNotNull(vertx, "Vertx required.");
-        Router router = Router.router(vertx);
+    public Router create(ApplicationContext context) {
+    	Preconditions.checkNotNull(context, "ApplicationContext required.");
+        Router router = Router.router(context.vertx());
         bindDefaulthandlers(router);
-        bindRequestHandlers(router);
+        bindRequestHandlers(context, router);
         return router;
     }
 
@@ -57,9 +61,9 @@ public class RouterFactory implements VertxComponentFactory<Router> {
         });
     }
 
-    public static void bindRequestHandlers(Router router) {
-        List<Class<?>> classes = ControllerScanner.scanQuietly(RouterFactory.class.getPackageName());
-        classes.stream().flatMap(RouterFactory::collectMetadata).forEach(handlerMethod -> {
+    public static void bindRequestHandlers(ApplicationContext context, Router router) {
+        List<Class<?>> classes = context.getCandidates();
+        classes.stream().filter(ClassFilter.ofAnnotation(Controller.class)).flatMap(RouterFactory::collectMetadata).forEach(handlerMethod -> {
             RequestMappingMetadata metadata = handlerMethod.getMetadata();
 
             Route route = metadata.isRegexPath() ? router.routeWithRegex(metadata.getPath())
@@ -77,6 +81,7 @@ public class RouterFactory implements VertxComponentFactory<Router> {
                 route.produces(produce);
             }
 
+            log.info("{}", Json.encodePrettily(metadata));
             route.handler(new RequestHandler(handlerMethod));
         });
     }
