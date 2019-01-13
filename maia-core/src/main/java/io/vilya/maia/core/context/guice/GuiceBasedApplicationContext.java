@@ -155,12 +155,4 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 		return (Class<T>) clazz;
 	}
 	
-	private static List<Binding<?>> getAllBindings(Injector injector) {
-		List<Binding<?>> bindings = new ArrayList<>();
-		injector.getAllBindings().forEach((key, value) -> bindings.add(value));
-		return bindings;
-	}
-	
-	
-	
 }
