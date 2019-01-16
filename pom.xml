@@ -25,6 +25,8 @@
 		<jackson.version>2.9.8</jackson.version>
 		<guava.version>27.0.1-jre</guava.version>
 		<guice.version>4.2.2</guice.version>
+		<hikaricp.version>3.3.0</hikaricp.version>
+		<vilya-common.version>1.0.4</vilya-common.version>
 	</properties>
 
 	<dependencyManagement>
@@ -82,6 +84,16 @@
 				<groupId>com.google.inject</groupId>
 				<artifactId>guice</artifactId>
 				<version>${guice.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.zaxxer</groupId>
+				<artifactId>HikariCP</artifactId>
+				<version>${hikaricp.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.vilya</groupId>
+				<artifactId>vilya-common</artifactId>
+				<version>${vilya-common.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

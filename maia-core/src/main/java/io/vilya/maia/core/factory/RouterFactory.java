@@ -21,6 +21,7 @@ import io.vilya.maia.core.annotation.RequestMapping;
 import io.vilya.maia.core.annotation.RequestMappingMetadata;
 import io.vilya.maia.core.constant.HttpStatusCode;
 import io.vilya.maia.core.context.ApplicationContext;
+import io.vilya.maia.core.context.ApplicationContextAware;
 import io.vilya.maia.core.context.ClassFilter;
 import io.vilya.maia.core.handler.RequestHandler;
 import io.vilya.maia.core.handler.RoutingHandler;
@@ -35,6 +36,8 @@ import io.vilya.maia.core.method.HandlerMethod;
 public class RouterFactory implements VertxComponentFactory<Router> {
 
     private static final Logger log = LoggerFactory.getLogger(RouterFactory.class);
+    
+	private ApplicationContext ctx;
         
     @Override
     public Router create(ApplicationContext context) {
@@ -63,37 +66,33 @@ public class RouterFactory implements VertxComponentFactory<Router> {
 
     public static void bindRequestHandlers(ApplicationContext context, Router router) {
         List<Class<?>> classes = context.getCandidates();
-        classes.stream().filter(ClassFilter.ofAnnotation(Controller.class)).flatMap(RouterFactory::collectMetadata).forEach(handlerMethod -> {
-            RequestMappingMetadata metadata = handlerMethod.getMetadata();
-
-            Route route = metadata.isRegexPath() ? router.routeWithRegex(metadata.getPath())
-                    : router.route(metadata.getPath());
-
-            for (HttpMethod method : metadata.getMethods()) {
-                route.method(method);
-            }
-
-            for (String consume : metadata.getConsumes()) {
-                route.consumes(consume);
-            }
-
-            for (String produce : metadata.getProduces()) {
-                route.produces(produce);
-            }
-
-            log.info("{}", Json.encodePrettily(metadata));
-            route.handler(new RequestHandler(handlerMethod));
-        });
+        classes.stream()
+        	.filter(ClassFilter.ofAnnotation(Controller.class))
+        	.flatMap(clazz -> collectMetadata(context, clazz))
+        	.forEach(handlerMethod -> {
+        		RequestMappingMetadata metadata = handlerMethod.getMetadata();
+	            Route route = metadata.isRegexPath() ? router.routeWithRegex(metadata.getPath())
+	                    : router.route(metadata.getPath());
+	
+	            for (HttpMethod method : metadata.getMethods()) {
+	                route.method(method);
+	            }
+	
+	            for (String consume : metadata.getConsumes()) {
+	                route.consumes(consume);
+	            }
+	
+	            for (String produce : metadata.getProduces()) {
+	                route.produces(produce);
+	            }
+	
+	            log.info("{}", Json.encodePrettily(metadata));
+	            route.handler(new RequestHandler(handlerMethod));
+        	});
     }
 
-    private static Stream<HandlerMethod> collectMetadata(Class<?> clazz) {
-        Object instance = null;
-        try {
-            instance = clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            log.error("", e);
-        }
-
+    private static Stream<HandlerMethod> collectMetadata(ApplicationContext context, Class<?> clazz) {
+        Object instance = context.getBean(clazz);
         if (instance == null) {
             return Stream.of();
         }
