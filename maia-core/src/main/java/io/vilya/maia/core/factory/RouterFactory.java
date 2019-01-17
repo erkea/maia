@@ -101,10 +101,15 @@ public class RouterFactory implements VertxComponentFactory<Router> {
         return Arrays.stream(clazz.getDeclaredMethods())
                 .filter(t -> t.isAnnotationPresent(RequestMapping.class))
                 .map(t -> {
+                	RequestMappingMetadata classMetadata = 
+                			RequestMappingMetadata.of(clazz.getAnnotation(RequestMapping.class));
+                	RequestMappingMetadata methodMetadata = 
+                			RequestMappingMetadata.of(t.getAnnotation(RequestMapping.class));
+                	
                     HandlerMethod handlerMethod = new HandlerMethod();
                     handlerMethod.setBean(finalInstance);
                     handlerMethod.setMethod(t);
-                    handlerMethod.setMetadata(RequestMappingMetadata.of(t.getAnnotation(RequestMapping.class)));
+                    handlerMethod.setMetadata(RequestMappingMetadata.merge(classMetadata, methodMetadata));
                     return handlerMethod;
                 });
     }
