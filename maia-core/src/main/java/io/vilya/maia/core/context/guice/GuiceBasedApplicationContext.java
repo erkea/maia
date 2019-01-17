@@ -3,7 +3,6 @@
  */
 package io.vilya.maia.core.context.guice;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +10,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableListMultimap.Builder;
+import com.google.common.collect.ListMultimap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binding;
 import com.google.inject.Guice;
@@ -27,6 +28,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vilya.maia.core.context.ApplicationContext;
+import io.vilya.maia.core.context.ApplicationContextAware;
 import io.vilya.maia.core.context.BeanNameGenerator;
 import io.vilya.maia.core.context.BeanScanner;
 import io.vilya.maia.core.context.DefaultBeanNameGenerator;
@@ -34,21 +36,22 @@ import io.vilya.maia.core.factory.ConfigRetrieverFactory;
 import io.vilya.maia.core.factory.RouterFactory;
 
 /**
- * @author erkea <erkea@vilya.io>
- * TODO cache bean from guice
- * TODO generic
+ * @author erkea <erkea@vilya.io> TODO
+ * cache bean from guice TODO generic
  */
 public class GuiceBasedApplicationContext implements ApplicationContext {
 
 	private static final Logger log = LoggerFactory.getLogger(GuiceBasedApplicationContext.class);
-	
+
 	private Vertx vertx;
-	
+
 	private ConfigRetriever configRetriever;
-	
+
 	private Injector injector;
 
 	private List<Class<?>> candidates;
+
+	private ListMultimap<Class<?>, Object> configured = ImmutableListMultimap.of();
 
 	private static BeanNameGenerator beanNameGenerator = new DefaultBeanNameGenerator();
 
@@ -62,24 +65,25 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 	public Vertx vertx() {
 		return vertx;
 	}
-	
+
 	@Override
 	public void registerBean(Class<?> clazz) {
 		// TODO The binder can only be used inside configure()
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getBean(Class<T> clazz) {
-		return injector.getInstance(clazz);
+		List<Object> instances = configured.get(clazz);
+		return instances.isEmpty() ? null : (T) instances.get(0);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> getBeanOfType(Class<T> clazz) {
-		Preconditions.checkNotNull(clazz);
-		List<Binding<T>> bindings = injector.findBindingsByType(TypeLiteral.get(clazz));
-		return bindings.stream().map(binding -> binding.getProvider().get()).collect(Collectors.toList());
+		return (List<T>) configured.get(clazz);
 	}
-	
+
 	@Override
 	public List<Class<?>> getCandidates() {
 		return candidates;
@@ -88,9 +92,35 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 	@Override
 	public void refresh() {
 		refreshInjector();
+		configureBeans();
 		deployVerticles();
 	}
+
+	private void configureBeans() {
+		Builder<Class<?>, Object> builder = ImmutableListMultimap.builder();
+		candidates.forEach(candidate -> {
+			List<Binding<Object>> bindings = 
+					injector.findBindingsByType(TypeLiteral.get(generics(candidate)));
+			if (bindings != null && !bindings.isEmpty()) {
+				List<Object> instances = bindings.stream()
+						.map(binding -> binding.getProvider().get())
+						.collect(Collectors.toList());
+				
+				instances.forEach(instance -> {
+					invokeAware(instance);
+					builder.put(candidate, instance);	
+				});
+			}
+		});
+		configured = builder.build();
+	}
 	
+	private void invokeAware(Object instance) {
+		if (instance instanceof ApplicationContextAware) {
+			((ApplicationContextAware) instance).setApplicationContext(this);
+		}
+	}
+
 	private void refreshInjector() {
 		injector = createInjector(candidates);
 	}
@@ -113,7 +143,7 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 			}
 		});
 	}
-	
+
 	private void deployVerticles() {
 		configRetriever.getConfig(result -> {
 			if (result.failed()) {
@@ -125,7 +155,7 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 			deployVerticle(vertx, config);
 		});
 	}
-	
+
 	private void deployVerticle(Vertx vertx, JsonObject config) {
 		ApplicationContext applicationContext = this;
 		vertx.deployVerticle(new AbstractVerticle() {
@@ -136,7 +166,7 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 					startFuture.fail("RouterFactory must be provided.");
 					return;
 				}
-				
+
 				HttpServer server = vertx.createHttpServer();
 				int port = config.getInteger("server.port", 8080);
 				server.requestHandler(routerFactory.create(applicationContext)).listen(port, listenHandler -> {
@@ -154,13 +184,5 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 	private static <T> Class<T> generics(Class<?> clazz) {
 		return (Class<T>) clazz;
 	}
-	
-	private static List<Binding<?>> getAllBindings(Injector injector) {
-		List<Binding<?>> bindings = new ArrayList<>();
-		injector.getAllBindings().forEach((key, value) -> bindings.add(value));
-		return bindings;
-	}
-	
-	
-	
+
 }

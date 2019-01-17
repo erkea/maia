@@ -5,16 +5,20 @@ package io.vilya.maia.core.annotation;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 
 import io.vertx.core.http.HttpMethod;
 
 /**
  * 
+ * {@link RequestMapping}
  * @author erkea <erkea@vilya.io>
- *
  */
 public class RequestMappingMetadata {
 
+	private static final RequestMappingMetadata EMPTY = createEmpty();
+			
 	private String path;
 	
 	private HttpMethod[] methods;
@@ -27,32 +31,16 @@ public class RequestMappingMetadata {
 		return path;
 	}
 
-	public void setPath(String path) {
-		this.path = path;
-	}
-
 	public HttpMethod[] getMethods() {
 		return methods;
-	}
-
-	public void setMethods(HttpMethod[] methods) {
-		this.methods = methods;
 	}
 
 	public String[] getConsumes() {
 		return consumes;
 	}
 
-	public void setConsumes(String[] consumes) {
-		this.consumes = consumes;
-	}
-
 	public String[] getProduces() {
 		return produces;
-	}
-
-	public void setProduces(String[] produces) {
-		this.produces = produces;
 	}
 
 	public boolean isRegexPath() {
@@ -60,13 +48,29 @@ public class RequestMappingMetadata {
 	}
 	
 	public static RequestMappingMetadata of(RequestMapping requestMapping) {
-		Preconditions.checkNotNull(requestMapping, "RequestMapping must not be null.");
+		if (requestMapping == null) {
+			return EMPTY;
+		}
+		
+		Preconditions.checkNotNull(requestMapping);
 		RequestMappingMetadata metadata = new RequestMappingMetadata();
-		metadata.setPath(normalizePath(requestMapping.path()));
-		metadata.setMethods(requestMapping.methods());
-		metadata.setConsumes(requestMapping.consumes());
-		metadata.setProduces(requestMapping.produces());
+		metadata.path = normalizePath(requestMapping.path());
+		metadata.methods = requestMapping.methods();
+		metadata.consumes = requestMapping.consumes();
+		metadata.produces = requestMapping.produces();
 		return metadata;
+	}
+	
+	public static RequestMappingMetadata merge(RequestMappingMetadata rmm1, RequestMappingMetadata rmm2) {
+		Preconditions.checkNotNull(rmm1);
+		Preconditions.checkNotNull(rmm2);
+		
+		RequestMappingMetadata merged = new RequestMappingMetadata();
+		merged.path = normalizePath(rmm1.path) + normalizePath(rmm2.path);
+		merged.methods = merge(rmm1.methods, rmm2.methods);
+		merged.consumes = merge(rmm1.consumes, rmm2.consumes);
+		merged.produces = merge(rmm1.produces, rmm2.produces);
+		return merged;
 	}
 	
 	private static String normalizePath(String path) {
@@ -86,4 +90,22 @@ public class RequestMappingMetadata {
 		return normalizedPath;
 	}
 	
+	@SafeVarargs
+	private static <T> T[] merge(T[] first, T[]... other) {
+		Builder<T> merged = ImmutableSet.builder();
+		merged.add(first);
+		for (T[] ts : other) {
+			merged.add(ts);
+		}
+		return merged.build().toArray(first);
+	}
+	
+	private static RequestMappingMetadata createEmpty() {
+		RequestMappingMetadata metadata = new RequestMappingMetadata();
+		metadata.path = "";
+		metadata.methods = new HttpMethod[0];
+		metadata.consumes = new String[0];
+		metadata.produces = new String[0];
+		return metadata;
+	}
 }

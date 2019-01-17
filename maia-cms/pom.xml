@@ -22,5 +22,9 @@
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.vilya</groupId>
+			<artifactId>vilya-common</artifactId>
+		</dependency>
 	</dependencies>
 </project>

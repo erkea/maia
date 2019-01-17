@@ -15,12 +15,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vilya.maia.core.constant.HttpStatusCode;
+import io.vilya.maia.core.constant.MediaType;
 import io.vilya.maia.core.exception.MaiaRuntimeException;
 import io.vilya.maia.core.method.HandlerMethod;
 
@@ -65,6 +68,7 @@ public class RequestHandler implements Handler<RoutingContext> {
 			response.end();
 		} else {
 			try {
+				response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.getFull());
 				response.end(Buffer.buffer(objectMapper.writeValueAsBytes(returnValue)));
 			} catch (JsonProcessingException e) {
 				throw new MaiaRuntimeException(e);
