@@ -11,6 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
+ * marker for normal component
  * @author erkea <erkea@vilya.io>
  *
  */

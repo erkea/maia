@@ -3,6 +3,8 @@
  */
 package io.vilya.maia.core.context;
 
+import java.util.Locale;
+
 import javax.inject.Named;
 
 import org.slf4j.Logger;
@@ -34,7 +36,15 @@ public class DefaultBeanNameGenerator implements BeanNameGenerator {
 			beanName = bean.getSimpleName();
 		}
 
-		return beanName;
+		return capitalize(beanName);
 	}
+	
+	
+	private static String capitalize(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+        return name.substring(0, 1).toLowerCase(Locale.ENGLISH) + name.substring(1);
+    }
 	
 }

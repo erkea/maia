@@ -9,10 +9,17 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vilya.maia.core.annotation.Component;
@@ -43,25 +50,28 @@ public class RouterFactory implements VertxComponentFactory<Router> {
     public Router create(ApplicationContext context) {
     	Preconditions.checkNotNull(context, "ApplicationContext required.");
         Router router = Router.router(context.vertx());
-        bindDefaulthandlers(router);
+        bindDefaulthandlers(context, router);
         bindRequestHandlers(context, router);
         return router;
     }
 
-    private static void bindDefaulthandlers(Router router) {
+    private static void bindDefaulthandlers(ApplicationContext context, Router router) {
+    	// logging
         router.route(RoutingHandler.ROOT_PATH).handler(LoggerHandler.create());
-
+        // auth
+        router.route(RoutingHandler.ROOT_PATH).handler(createAuthHandler(context));
+        // server version
         router.route(RoutingHandler.ROOT_PATH).handler(rh -> {
             rh.response().putHeader("X-Vilya-Version", "1.0");
             rh.next();
         });
-
+        // static resource
         router.route(RoutingHandler.ROOT_PATH).order(Integer.MAX_VALUE - 10).handler(StaticHandler.create("static"));
-
+        // exception handler
         router.route(RoutingHandler.ROOT_PATH).last().failureHandler(rh -> {
             rh.response().setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getCode());
             rh.response().end();
-        });
+        });        
     }
 
     public static void bindRequestHandlers(ApplicationContext context, Router router) {
@@ -112,6 +122,16 @@ public class RouterFactory implements VertxComponentFactory<Router> {
                     handlerMethod.setMetadata(RequestMappingMetadata.merge(classMetadata, methodMetadata));
                     return handlerMethod;
                 });
+    }
+    
+    private static Handler<RoutingContext> createAuthHandler(ApplicationContext context) {
+		JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
+				.addPubSecKey(new PubSecKeyOptions()
+						.setAlgorithm("HS256")
+						.setPublicKey("keyboard cat")
+						.setSymmetric(true));
+		JWTAuth jwtAuth = JWTAuth.create(context.vertx(), jwtAuthOptions);
+		return JWTAuthHandler.create(jwtAuth);
     }
 
 }
