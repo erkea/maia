@@ -7,15 +7,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * 
+ * marker for controller layer component
  * @author erkea <erkea@vilya.io>
  *
  */
 @Retention(RUNTIME)
 @Target(TYPE)
 @Component
-public @interface Controller {
-
-	
-	
-}
+public @interface Controller {}
