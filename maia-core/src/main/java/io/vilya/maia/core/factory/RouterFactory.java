@@ -69,7 +69,12 @@ public class RouterFactory implements VertxComponentFactory<Router> {
         router.route(RoutingHandler.ROOT_PATH).order(Integer.MAX_VALUE - 10).handler(StaticHandler.create("static"));
         // exception handler
         router.route(RoutingHandler.ROOT_PATH).last().failureHandler(rh -> {
-            rh.response().setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getCode());
+        	log.error("", rh.failure());
+        	if (rh.statusCode() != -1) {
+        		rh.response().setStatusCode(rh.statusCode());
+        	} else {
+        		rh.response().setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getCode());        		
+        	}
             rh.response().end();
         });        
     }
