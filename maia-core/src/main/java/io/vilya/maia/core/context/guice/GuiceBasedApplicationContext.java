@@ -3,7 +3,6 @@
  */
 package io.vilya.maia.core.context.guice;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,13 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableListMultimap.Builder;
 import com.google.common.collect.ListMultimap;
-import com.google.inject.AbstractModule;
 import com.google.inject.Binding;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 
 import io.vertx.config.ConfigRetriever;
 import io.vertx.core.AbstractVerticle;
@@ -27,21 +22,17 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.PubSecKeyOptions;
-import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vilya.maia.core.context.ApplicationContext;
 import io.vilya.maia.core.context.ApplicationContextAware;
-import io.vilya.maia.core.context.BeanNameGenerator;
 import io.vilya.maia.core.context.BeanScanner;
-import io.vilya.maia.core.context.DefaultBeanNameGenerator;
 import io.vilya.maia.core.factory.ConfigRetrieverFactory;
 import io.vilya.maia.core.factory.RouterFactory;
+import io.vilya.maia.core.util.ClassUtils;
 
 /**
- * @author erkea <erkea@vilya.io> TODO
- * cache bean from guice TODO generic
+ * @author erkea <erkea@vilya.io>
+ * TODO cache bean from guice
+ * TODO generic
  */
 public class GuiceBasedApplicationContext implements ApplicationContext {
 
@@ -56,8 +47,6 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 	private List<Class<?>> candidates;
 
 	private ListMultimap<Class<?>, Object> configured = ImmutableListMultimap.of();
-
-	private static BeanNameGenerator beanNameGenerator = new DefaultBeanNameGenerator();
 
 	public GuiceBasedApplicationContext(String... basePackages) {
 		candidates = new BeanScanner().scan(basePackages);
@@ -104,7 +93,7 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 		Builder<Class<?>, Object> builder = ImmutableListMultimap.builder();
 		candidates.forEach(candidate -> {
 			List<Binding<Object>> bindings = 
-					injector.findBindingsByType(TypeLiteral.get(generics(candidate)));
+					injector.findBindingsByType(TypeLiteral.get(ClassUtils.generics(candidate)));
 			if (bindings != null && !bindings.isEmpty()) {
 				List<Object> instances = bindings.stream()
 						.map(binding -> binding.getProvider().get())
@@ -126,28 +115,9 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 	}
 
 	private void refreshInjector() {
-		injector = createInjector(candidates);
+		injector = GuiceInjectorFactory.createInjector(candidates);
 	}
-
-	private static Injector createInjector(List<Class<?>> candidates) {
-		return Guice.createInjector(new AbstractModule() {
-			@Override
-			protected void configure() {
-				if (candidates == null || candidates.isEmpty()) {
-					return;
-				}
-
-				candidates.forEach(candidate -> {
-					bind(candidate).in(Scopes.SINGLETON);
-					Arrays.stream(candidate.getInterfaces())
-							.forEach(t -> bind(generics(t))
-									.annotatedWith(Names.named(beanNameGenerator.generate(candidate))).to(candidate)
-									.in(Scopes.SINGLETON));
-				});
-			}
-		});
-	}
-
+	
 	private void deployVerticles() {
 		configRetriever.getConfig(result -> {
 			if (result.failed()) {
@@ -182,11 +152,6 @@ public class GuiceBasedApplicationContext implements ApplicationContext {
 				});
 			}
 		});
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> Class<T> generics(Class<?> clazz) {
-		return (Class<T>) clazz;
 	}
 
 }

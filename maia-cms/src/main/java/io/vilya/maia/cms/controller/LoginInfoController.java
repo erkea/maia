@@ -4,7 +4,6 @@
 package io.vilya.maia.cms.controller;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class LoginInfoController {
 	private static final Logger log = LoggerFactory.getLogger(LoginInfoController.class);
 	
 	@Inject
-	@Named("loginInfoServiceImpl")
 	private LoginInfoService loginInfoService;
 	
 	@RequestMapping(path = "index")
