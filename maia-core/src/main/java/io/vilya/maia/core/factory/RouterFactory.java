@@ -59,7 +59,7 @@ public class RouterFactory implements VertxComponentFactory<Router> {
     	// logging
         router.route(RoutingHandler.ROOT_PATH).handler(LoggerHandler.create());
         // auth
-        router.route(RoutingHandler.ROOT_PATH).handler(createAuthHandler(context));
+        // router.route(RoutingHandler.ROOT_PATH).handler(createAuthHandler(context));
         // server version
         router.route(RoutingHandler.ROOT_PATH).handler(rh -> {
             rh.response().putHeader("X-Vilya-Version", "1.0");
