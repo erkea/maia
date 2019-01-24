@@ -1,0 +1,7 @@
+# README
+
+## authorization
+
+Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJRCI6IjEwMDAxIiwiTkFNRSI6ImVya2VhIiwicGVybWlzc2lvbnMiOlsiQURNSU4iXSwiaWF0IjoxNTQ4MzM2MTkzfQ.i4_LGR4goRlHEroufKGNmnV1EN9Xie5fxO8EftVvZcU
+
+鉴权及授权机制待完善。

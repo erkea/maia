@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.ext.auth.PubSecKeyOptions;
@@ -28,7 +27,6 @@ import io.vilya.maia.core.annotation.RequestMapping;
 import io.vilya.maia.core.annotation.RequestMappingMetadata;
 import io.vilya.maia.core.constant.HttpStatusCode;
 import io.vilya.maia.core.context.ApplicationContext;
-import io.vilya.maia.core.context.ApplicationContextAware;
 import io.vilya.maia.core.context.ClassFilter;
 import io.vilya.maia.core.handler.RequestHandler;
 import io.vilya.maia.core.handler.RoutingHandler;
@@ -59,7 +57,7 @@ public class RouterFactory implements VertxComponentFactory<Router> {
     	// logging
         router.route(RoutingHandler.ROOT_PATH).handler(LoggerHandler.create());
         // auth
-        // router.route(RoutingHandler.ROOT_PATH).handler(createAuthHandler(context));
+        router.route(RoutingHandler.ROOT_PATH).handler(createAuthHandler(context));
         // server version
         router.route(RoutingHandler.ROOT_PATH).handler(rh -> {
             rh.response().putHeader("X-Vilya-Version", "1.0");
@@ -136,7 +134,9 @@ public class RouterFactory implements VertxComponentFactory<Router> {
 						.setPublicKey("keyboard cat")
 						.setSymmetric(true));
 		JWTAuth jwtAuth = JWTAuth.create(context.vertx(), jwtAuthOptions);
-		return JWTAuthHandler.create(jwtAuth);
+		// TODO register JWTAuth as bean
+		JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
+		jwtAuthHandler.addAuthority("ADMIN");
+		return jwtAuthHandler;
     }
-
 }
