@@ -14,6 +14,7 @@
 		<module>maia-core</module>
 		<module>maia-cms</module>
 		<module>maia-launcher</module>
+		<module>maia-jdbc</module>
 	</modules>
 
 	<properties>
