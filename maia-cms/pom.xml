@@ -15,6 +15,10 @@
 			<artifactId>maia-core</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.vilya.maia</groupId>
+			<artifactId>maia-jdbc</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
 		</dependency>

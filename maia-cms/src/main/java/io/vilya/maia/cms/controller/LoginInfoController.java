@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vilya.common.api.RestResponse;
+import io.vilya.maia.cms.entity.LoginInfo;
 import io.vilya.maia.cms.service.LoginInfoService;
 import io.vilya.maia.core.annotation.Controller;
 import io.vilya.maia.core.annotation.RequestMapping;
@@ -28,7 +29,8 @@ public class LoginInfoController {
 	
 	@RequestMapping(path = "index")
 	public RestResponse index() {
-		return new RestResponse();
+		LoginInfo loginInfo = loginInfoService.getById(1);
+		return new RestResponse(loginInfo);
 	}
 	
 }
