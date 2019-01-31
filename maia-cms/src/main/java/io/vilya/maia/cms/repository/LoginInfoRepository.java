@@ -19,7 +19,7 @@ public interface LoginInfoRepository {
 
     int insertSelective(LoginInfo record);
 
-    @Select("select * from login_info where id = #{id}")
+    // @Select("select * from login_info where id = #{id}")
     LoginInfo selectByPrimaryKey(Integer id);
 
     int updateByPrimaryKeySelective(LoginInfo record);
