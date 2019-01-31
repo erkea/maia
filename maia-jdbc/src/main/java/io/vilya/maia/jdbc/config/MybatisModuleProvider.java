@@ -12,9 +12,7 @@ import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.mybatis.guice.MyBatisModule;
 import org.mybatis.guice.configuration.ConfigurationProvider;
 
-import com.google.common.reflect.ClassPath;
 import com.google.inject.Module;
-import com.google.inject.name.Names;
 
 import io.vilya.maia.core.annotation.Component;
 import io.vilya.maia.core.context.guice.GuiceModuleProvider;
