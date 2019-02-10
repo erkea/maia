@@ -1,5 +1,6 @@
 package io.vilya.maia.core.context.guice;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -7,9 +8,11 @@ import java.util.Set;
 
 import javax.inject.Named;
 
+import com.google.common.reflect.Reflection;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
@@ -49,6 +52,11 @@ public class GuiceInjectorFactory {
 			}
 
 			candidates.forEach(candidate -> {
+				if (GuiceModuleProvider.class.isAssignableFrom(candidate)) {
+					install(createModule(candidate));
+					return;
+				}
+				
 				// bind self
 				bind(candidate).in(Scopes.SINGLETON);
 				// bind interfaces
@@ -71,6 +79,17 @@ public class GuiceInjectorFactory {
 			
 			noNameProvided.clear();
 		}
+	}
+	
+	private static Module createModule(Class<?> clazz) {
+		Object object;
+		try {
+			object = clazz.getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			throw new MaiaRuntimeException(e);
+		}
+		GuiceModuleProvider moduleProvider = GuiceModuleProvider.class.cast(object);
+		return moduleProvider.get();
 	}
 	
 }

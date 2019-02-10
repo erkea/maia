@@ -20,7 +20,6 @@ import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
 import io.vilya.maia.core.annotation.Component;
-import io.vilya.maia.core.util.ControllerScanner;
 
 /**
  * @author erkea <erkea@vilya.io>
@@ -44,7 +43,7 @@ public class BeanScanner {
 	}
 
 	public List<Class<?>> scan(String... basePackages) {
-		return scan(ControllerScanner.class.getClassLoader(), basePackages);
+		return scan(BeanScanner.class.getClassLoader(), basePackages);
 	}
 
 	public List<Class<?>> scan(ClassLoader classLoader, String... basePackages) {
